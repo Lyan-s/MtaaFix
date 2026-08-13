@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "156519257412",
+    "project_id": "mtaafix",
+    "storage_bucket": "mtaafix.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:156519257412:android:aadcaae749136a311db311",
+        "android_client_info": {
+          "package_name": "com.example.mtaafix"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBr0w8oee5xWIuUGYjrDUqwtpinyL85roc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -7,7 +7,7 @@ plugins {
 android {
     namespace = "com.example.mtaafix"
     compileSdk {
-        version = release(36) {
+        version = release(37) {
             minorApiLevel = 1
         }
     }
@@ -37,6 +37,11 @@ android {
         compose = true
     }
 }
+kotlin{
+    compilerOptions {
+        freeCompilerArgs.add("-opt-in=androidx.compose.material3.ExperimentalMaterial3Api")
+    }
+}
 
 dependencies {
     implementation(platform(libs.androidx.compose.bom))
@@ -47,6 +52,8 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.cloudinary.android)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)

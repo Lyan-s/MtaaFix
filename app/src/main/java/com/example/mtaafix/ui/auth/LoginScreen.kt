@@ -10,19 +10,18 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.delay
 
 @Composable
-fun SignUpScreen(
+fun LoginScreen(
     authViewModel: AuthViewModel = viewModel(),
-    onSignUpSuccess: () -> Unit = {},
-    onNavigateToLogin: () -> Unit = {}
+    onLoginSuccess: () -> Unit = {},
+    onNavigateToSignUp: () -> Unit = {}
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
     var showSuccessMessage by remember { mutableStateOf(false) }
     var showErrorMessage by remember { mutableStateOf(false) }
 
     if (authViewModel.isLoggedIn) {
-        onSignUpSuccess()
+        onLoginSuccess()
     }
 
     LaunchedEffect(authViewModel.isLoggedIn) {
@@ -49,7 +48,7 @@ fun SignUpScreen(
     ) {
         AnimatedStatusBanner(
             visible = showSuccessMessage,
-            message = "Account created!",
+            message = "Logged in successfully!",
             isSuccess = true
         )
 
@@ -60,7 +59,7 @@ fun SignUpScreen(
         )
 
         Text(
-            text = "Create Account",
+            text = "Welcome Back",
             style = MaterialTheme.typography.headlineMedium
         )
 
@@ -83,20 +82,10 @@ fun SignUpScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        OutlinedTextField(
-            value = confirmPassword,
-            onValueChange = { confirmPassword = it },
-            label = { Text("Confirm Password") },
-            visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
-        )
-
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
-            onClick = { authViewModel.signUp(email, password, confirmPassword) },
+            onClick = { authViewModel.login(email, password) },
             enabled = !authViewModel.isLoading,
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -106,14 +95,14 @@ fun SignUpScreen(
                     color = MaterialTheme.colorScheme.onPrimary
                 )
             } else {
-                Text("Sign Up")
+                Text("Log In")
             }
         }
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        TextButton(onClick = onNavigateToLogin) {
-            Text("Already have an account? Log in")
+        TextButton(onClick = onNavigateToSignUp) {
+            Text("Don't have an account? Sign up")
         }
     }
 }
