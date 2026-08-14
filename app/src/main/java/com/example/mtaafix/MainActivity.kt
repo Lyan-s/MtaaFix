@@ -5,12 +5,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.mtaafix.ui.auth.LoginScreen
-import com.example.mtaafix.ui.auth.SignUpScreen
+import com.example.mtaafix.ui.navigation.AppNavigation
 import com.example.mtaafix.ui.theme.MtaaFixTheme
 
 class MainActivity : ComponentActivity() {
@@ -19,18 +16,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MtaaFixTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) {
-                    LoginScreen()
+                Surface(modifier = Modifier.fillMaxSize()) {
+                    AppNavigation()
                 }
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun LoginScreenPreview() {
-    MtaaFixTheme {
-        LoginScreen()
     }
 }
