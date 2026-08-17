@@ -1,28 +1,38 @@
 package com.example.mtaafix.ui.reports
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 
 private val statusStages = listOf("Pending", "Verified", "Assigned", "In Progress", "Resolved")
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReportDetailScreen(report: Report?) {
+fun ReportDetailScreen(
+    report: Report?,
+    isAdmin: Boolean = false,
+    reportViewModel: ReportViewModel = viewModel(),
+    onDeleted: () -> Unit = {}
+) {
     if (report == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text("Report not found")
         }
         return
     }
+
+    var statusMenuExpanded by remember { mutableStateOf(false) }
+    var pendingStatus by remember(report.status) { mutableStateOf(report.status) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -68,6 +78,89 @@ fun ReportDetailScreen(report: Report?) {
         Spacer(modifier = Modifier.height(12.dp))
 
         StatusTracker(currentStatus = report.status)
+
+        if (!isAdmin) {
+            Spacer(modifier = Modifier.height(24.dp))
+            OutlinedButton(
+                onClick = { showDeleteDialog = true },
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = MaterialTheme.colorScheme.error
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Delete Report")
+            }
+        }
+
+        if (showDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text("Delete this report?") },
+                text = { Text("This can't be undone.") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showDeleteDialog = false
+                        reportViewModel.deleteReport(report.id, onDeleted)
+                    }) {
+                        Text("Delete", color = MaterialTheme.colorScheme.error)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
+
+        if (isAdmin) {
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(text = "Update Status (Admin)", style = MaterialTheme.typography.titleMedium)
+            Spacer(modifier = Modifier.height(8.dp))
+
+            ExposedDropdownMenuBox(
+                expanded = statusMenuExpanded,
+                onExpandedChange = { statusMenuExpanded = it }
+            ) {
+                OutlinedTextField(
+                    value = pendingStatus,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("New status") },
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = statusMenuExpanded)
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor(MenuAnchorType.PrimaryNotEditable)
+                )
+
+                ExposedDropdownMenu(
+                    expanded = statusMenuExpanded,
+                    onDismissRequest = { statusMenuExpanded = false }
+                ) {
+                    statusStages.forEach { stage ->
+                        DropdownMenuItem(
+                            text = { Text(stage) },
+                            onClick = {
+                                pendingStatus = stage
+                                statusMenuExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Button(
+                onClick = { reportViewModel.updateReportStatus(report.id, pendingStatus) },
+                enabled = pendingStatus != report.status,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Save Status")
+            }
+        }
     }
 }
 

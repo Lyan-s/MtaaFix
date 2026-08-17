@@ -3,6 +3,7 @@ package com.example.mtaafix.ui.home
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -17,6 +18,7 @@ fun HomeScreen(
     reportViewModel: ReportViewModel = viewModel(),
     onNavigateToSettings: () -> Unit = {},
     onNavigateToNewReport: () -> Unit = {},
+    onNavigateToUpdates: () -> Unit = {},
     onReportClick: (Report) -> Unit = {}
 ) {
     Scaffold(
@@ -24,6 +26,9 @@ fun HomeScreen(
             TopAppBar(
                 title = { Text("MtaaFix") },
                 actions = {
+                    IconButton(onClick = onNavigateToUpdates) {
+                        Icon(Icons.Filled.Notifications, contentDescription = "Updates")
+                    }
                     IconButton(onClick = onNavigateToSettings) {
                         Icon(Icons.Filled.Settings, contentDescription = "Settings")
                     }

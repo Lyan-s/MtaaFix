@@ -5,10 +5,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.google.firebase.auth.FirebaseAuth
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.mtaafix.ui.auth.AuthViewModel
 
 @Composable
 fun SettingsScreen(
+    authViewModel: AuthViewModel = viewModel(),
     onLoggedOut: () -> Unit = {}
 ) {
     Scaffold(
@@ -22,7 +24,7 @@ fun SettingsScreen(
         ) {
             Button(
                 onClick = {
-                    FirebaseAuth.getInstance().signOut()
+                    authViewModel.logout()
                     onLoggedOut()
                 },
                 modifier = Modifier.fillMaxWidth()

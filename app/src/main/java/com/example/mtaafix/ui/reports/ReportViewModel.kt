@@ -28,6 +28,12 @@ class ReportViewModel : ViewModel() {
     var myReports by mutableStateOf<List<Report>>(emptyList())
         private set
 
+    var allReports by mutableStateOf<List<Report>>(emptyList())
+        private set
+
+    var myUpdates by mutableStateOf<List<StatusUpdate>>(emptyList())
+        private set
+
     var isLoadingReports by mutableStateOf(false)
         private set
 
@@ -127,6 +133,87 @@ class ReportViewModel : ViewModel() {
             .addOnFailureListener { exception ->
                 isLoadingReports = false
                 errorMessage = "Failed to load reports: ${exception.message}"
+            }
+    }
+
+
+    fun fetchAllReports() {
+        isLoadingReports = true
+        errorMessage = null
+
+        firestore.collection("reports")
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val results = snapshot.documents.mapNotNull { doc ->
+                    doc.toObject(Report::class.java)?.copy(id = doc.id)
+                }
+                allReports = results.sortedByDescending { it.createdAt }
+                isLoadingReports = false
+            }
+            .addOnFailureListener { exception ->
+                isLoadingReports = false
+                errorMessage = "Failed to load reports: ${exception.message}"
+            }
+    }
+
+    fun updateReportStatus(reportId: String, newStatus: String) {
+        val report = allReports.find { it.id == reportId } ?: selectedReport
+        val oldStatus = report?.status ?: ""
+        val reportOwnerId = report?.userId ?: ""
+        val reportTitle = report?.title ?: ""
+
+        firestore.collection("reports").document(reportId)
+            .update("status", newStatus)
+            .addOnSuccessListener {
+                // Reflect the change locally so the UI updates without a full re-fetch
+                allReports = allReports.map {
+                    if (it.id == reportId) it.copy(status = newStatus) else it
+                }
+                selectedReport = selectedReport?.let {
+                    if (it.id == reportId) it.copy(status = newStatus) else it
+                }
+
+                // Log this change so the citizen sees it in their Updates screen
+                val update = StatusUpdate(
+                    reportId = reportId,
+                    reportTitle = reportTitle,
+                    userId = reportOwnerId,
+                    oldStatus = oldStatus,
+                    newStatus = newStatus
+                )
+                firestore.collection("statusUpdates").add(update)
+            }
+            .addOnFailureListener { exception ->
+                errorMessage = "Failed to update status: ${exception.message}"
+            }
+    }
+
+    fun fetchMyUpdates() {
+        val userId = auth.currentUser?.uid ?: return
+
+        firestore.collection("statusUpdates")
+            .whereEqualTo("userId", userId)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val results = snapshot.documents.mapNotNull { doc ->
+                    doc.toObject(StatusUpdate::class.java)
+                }
+                myUpdates = results.sortedByDescending { it.timestamp }
+            }
+    }
+
+
+    fun deleteReport(reportId: String, onComplete: () -> Unit) {
+        firestore.collection("reports").document(reportId)
+            .delete()
+            .addOnSuccessListener {
+                myReports = myReports.filter { it.id != reportId }
+                allReports = allReports.filter { it.id != reportId }
+                selectedReport = null
+                onComplete()
+            }
+            .addOnFailureListener { exception ->
+                errorMessage = "Failed to delete report: ${exception.message}"
             }
     }
 
