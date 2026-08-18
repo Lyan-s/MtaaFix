@@ -3,12 +3,13 @@ package com.example.mtaafix.ui.auth
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -37,7 +38,6 @@ private val MtaaLightBlue = Color(0xFFF5F9FD)
 private val MtaaBorder = Color(0xFFD9E0E8)
 private val MtaaGray = Color(0xFF6B7280)
 
-
 @Composable
 fun LoginScreen(
     authViewModel: AuthViewModel = viewModel(),
@@ -45,135 +45,66 @@ fun LoginScreen(
     onNavigateToSignUp: () -> Unit = {},
     onForgotPassword: () -> Unit = {}
 ) {
-
-    var email by remember {
-        mutableStateOf("")
-    }
-
-    var password by remember {
-        mutableStateOf("")
-    }
-
-    var passwordVisible by remember {
-        mutableStateOf(false)
-    }
-
-    var showSuccessMessage by remember {
-        mutableStateOf(false)
-    }
-
-    var showErrorMessage by remember {
-        mutableStateOf(false)
-    }
-
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(true) }
+    var showSuccessMessage by remember { mutableStateOf(false) }
+    var showErrorMessage by remember { mutableStateOf(false) }
 
     // --------------------------------------------------------
-    // Login success
+    // Login success & Navigation
     // --------------------------------------------------------
-
-    if (authViewModel.isLoggedIn) {
-        onLoginSuccess()
-    }
-
-
     LaunchedEffect(authViewModel.isLoggedIn) {
-
         if (authViewModel.isLoggedIn) {
-
             showSuccessMessage = true
-
-            delay(2000)
-
+            delay(1500)
             showSuccessMessage = false
+            onLoginSuccess()
         }
     }
 
-
     // --------------------------------------------------------
-    // Login error
+    // Login error banner timer
     // --------------------------------------------------------
-
     LaunchedEffect(authViewModel.errorMessage) {
-
         if (authViewModel.errorMessage != null) {
-
             showErrorMessage = true
-
-            delay(3000)
-
+            delay(4000)
             showErrorMessage = false
         }
     }
 
-
     // --------------------------------------------------------
-    // Screen
+    // Main Screen Layout
     // --------------------------------------------------------
-
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
+            .systemBarsPadding() // FIX 1: Prevents overlapping with the top status bar and bottom navigation bar
             .padding(horizontal = 24.dp)
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-
-        // ----------------------------------------------------
-        // Status messages
-        // ----------------------------------------------------
-
-        AnimatedStatusBanner(
-            visible = showSuccessMessage,
-            message = "Logged in successfully!",
-            isSuccess = true
-        )
-
-        AnimatedStatusBanner(
-            visible = showErrorMessage,
-            message = authViewModel.errorMessage ?: "",
-            isSuccess = false
-        )
-
-
-        // ----------------------------------------------------
-        // Top section
-        // ----------------------------------------------------
-
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
+            modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(modifier = Modifier.height(48.dp)) // Added space above the logo
 
-            Spacer(
-                modifier = Modifier.height(45.dp)
-            )
-
-
-            // ------------------------------------------------
-            // MtaaFix logo
-            // ------------------------------------------------
-
+            // Logo
             Image(
-                painter = painterResource(
-                    id = R.drawable.splash_logo
-                ),
-                contentDescription = "MtaaFix",
+                painter = painterResource(id = R.drawable.splash_logo),
+                contentDescription = "MtaaFix Logo",
                 modifier = Modifier
                     .fillMaxWidth(0.62f)
                     .height(90.dp)
             )
 
+            Spacer(modifier = Modifier.height(24.dp))
 
-            Spacer(
-                modifier = Modifier.height(25.dp)
-            )
-
-
-            // ------------------------------------------------
-            // Welcome text
-            // ------------------------------------------------
-
+            // Header Text
             Text(
                 text = "Welcome Back 👋",
                 fontSize = 28.sp,
@@ -182,9 +113,7 @@ fun LoginScreen(
                 textAlign = TextAlign.Center
             )
 
-            Spacer(
-                modifier = Modifier.height(6.dp)
-            )
+            Spacer(modifier = Modifier.height(6.dp))
 
             Text(
                 text = "Let's fix your mtaa.",
@@ -193,20 +122,23 @@ fun LoginScreen(
                 textAlign = TextAlign.Center
             )
 
+            Spacer(modifier = Modifier.height(32.dp))
 
-            Spacer(
-                modifier = Modifier.height(32.dp)
+            // FIX 2: Moved Status Banners here so they sit right above the input fields
+            AnimatedStatusBanner(
+                visible = showSuccessMessage,
+                message = "Logged in successfully!",
+                isSuccess = true
             )
 
+            AnimatedStatusBanner(
+                visible = showErrorMessage,
+                message = authViewModel.errorMessage ?: "",
+                isSuccess = false
+            )
 
-            // ------------------------------------------------
-            // Email
-            // ------------------------------------------------
-
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-
+            // Email Input
+            Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = "Email",
                     fontSize = 14.sp,
@@ -214,56 +146,39 @@ fun LoginScreen(
                     color = MtaaDarkBlue
                 )
 
-                Spacer(
-                    modifier = Modifier.height(7.dp)
-                )
+                Spacer(modifier = Modifier.height(7.dp))
 
                 OutlinedTextField(
                     value = email,
-                    onValueChange = {
-                        email = it
-                    },
+                    onValueChange = { email = it },
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = {
-                        Text(
-                            text = "Enter your email"
-                        )
-                    },
+                    placeholder = { Text("Enter your email") },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Email,
-                            contentDescription = "Email",
+                            contentDescription = "Email Icon",
                             tint = MtaaBlue
                         )
                     },
                     singleLine = true,
-                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                        keyboardType = KeyboardType.Email
-                    ),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MtaaBlue,
                         unfocusedBorderColor = MtaaBorder,
                         focusedContainerColor = MtaaLightBlue,
-                        unfocusedContainerColor = MtaaLightBlue
+                        unfocusedContainerColor = MtaaLightBlue,
+                        focusedTextColor = MtaaDarkBlue,
+                        unfocusedTextColor = MtaaDarkBlue,
+                        cursorColor = MtaaBlue
                     )
                 )
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Spacer(
-                modifier = Modifier.height(17.dp)
-            )
-
-
-            // ------------------------------------------------
-            // Password
-            // ------------------------------------------------
-
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-
+            // Password Input
+            Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     text = "Password",
                     fontSize = 14.sp,
@@ -271,86 +186,51 @@ fun LoginScreen(
                     color = MtaaDarkBlue
                 )
 
-                Spacer(
-                    modifier = Modifier.height(7.dp)
-                )
+                Spacer(modifier = Modifier.height(7.dp))
 
                 OutlinedTextField(
                     value = password,
-                    onValueChange = {
-                        password = it
-                    },
+                    onValueChange = { password = it },
                     modifier = Modifier.fillMaxWidth(),
-                    placeholder = {
-                        Text(
-                            text = "Enter your password"
-                        )
-                    },
+                    placeholder = { Text("Enter your password") },
                     leadingIcon = {
                         Icon(
                             imageVector = Icons.Default.Lock,
-                            contentDescription = "Password",
+                            contentDescription = "Password Icon",
                             tint = MtaaBlue
                         )
                     },
                     trailingIcon = {
-
-                        IconButton(
-                            onClick = {
-                                passwordVisible = !passwordVisible
-                            }
-                        ) {
-
-                            Icon(
-                                imageVector =
-                                    if (passwordVisible)
-                                        Icons.Default.VisibilityOff
-                                    else
-                                        Icons.Default.Visibility,
-
-                                contentDescription =
-                                    if (passwordVisible)
-                                        "Hide password"
-                                    else
-                                        "Show password",
-
-                                tint = MtaaGray
+                        TextButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Text(
+                                text = if (passwordVisible) "Hide" else "Show",
+                                fontSize = 12.sp,
+                                color = MtaaGray
                             )
                         }
                     },
                     singleLine = true,
-                    visualTransformation =
-                        if (passwordVisible)
-                            VisualTransformation.None
-                        else
-                            PasswordVisualTransformation(),
-                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-                        keyboardType = KeyboardType.Password
-                    ),
+                    visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MtaaBlue,
                         unfocusedBorderColor = MtaaBorder,
                         focusedContainerColor = MtaaLightBlue,
-                        unfocusedContainerColor = MtaaLightBlue
+                        unfocusedContainerColor = MtaaLightBlue,
+                        focusedTextColor = MtaaDarkBlue,
+                        unfocusedTextColor = MtaaDarkBlue,
+                        cursorColor = MtaaBlue
                     )
                 )
             }
 
-
-            // ------------------------------------------------
-            // Forgot password
-            // ------------------------------------------------
-
+            // Forgot Password
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
-
-                TextButton(
-                    onClick = onForgotPassword
-                ) {
-
+                TextButton(onClick = onForgotPassword) {
                     Text(
                         text = "Forgot password?",
                         fontSize = 14.sp,
@@ -360,50 +240,28 @@ fun LoginScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(12.dp))
 
-            Spacer(
-                modifier = Modifier.height(8.dp)
-            )
-
-
-            // ------------------------------------------------
-            // LOGIN BUTTON
-            // ------------------------------------------------
-
+            // Login Button
             Button(
-                onClick = {
-                    authViewModel.login(
-                        email,
-                        password
-                    )
-                },
-
+                onClick = { authViewModel.login(email, password) },
                 enabled = !authViewModel.isLoading,
-
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
-
                 shape = RoundedCornerShape(12.dp),
-
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MtaaBlue,
-                    disabledContainerColor = MtaaBlue.copy(
-                        alpha = 0.6f
-                    )
+                    disabledContainerColor = MtaaBlue.copy(alpha = 0.6f)
                 )
             ) {
-
                 if (authViewModel.isLoading) {
-
                     CircularProgressIndicator(
                         modifier = Modifier.size(22.dp),
                         color = Color.White,
                         strokeWidth = 2.dp
                     )
-
                 } else {
-
                     Text(
                         text = "LOGIN",
                         fontSize = 16.sp,
@@ -412,64 +270,44 @@ fun LoginScreen(
                 }
             }
 
+            Spacer(modifier = Modifier.height(24.dp))
 
-            Spacer(
-                modifier = Modifier.height(24.dp)
-            )
-
-
-            // ------------------------------------------------
-            // OR divider
-            // ------------------------------------------------
-
+            // Divider
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
                 HorizontalDivider(
                     modifier = Modifier.weight(1f),
                     color = MtaaBorder
                 )
-
                 Text(
                     text = "  or  ",
                     fontSize = 13.sp,
                     color = MtaaGray
                 )
-
                 HorizontalDivider(
                     modifier = Modifier.weight(1f),
                     color = MtaaBorder
                 )
             }
 
+            Spacer(modifier = Modifier.height(18.dp))
 
-            Spacer(
-                modifier = Modifier.height(18.dp)
-            )
-
-
-            // ------------------------------------------------
-            // Sign up
-            // ------------------------------------------------
-
+            // Sign Up Option
             Row(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
                 Text(
                     text = "Don't have an account? ",
                     fontSize = 14.sp,
                     color = MtaaGray
                 )
-
                 TextButton(
                     onClick = onNavigateToSignUp,
                     contentPadding = PaddingValues(0.dp)
                 ) {
-
                     Text(
                         text = "Sign Up",
                         fontSize = 14.sp,
@@ -478,23 +316,14 @@ fun LoginScreen(
                     )
                 }
             }
-
-
-            Spacer(
-                modifier = Modifier.height(20.dp)
-            )
         }
 
-
-        // ----------------------------------------------------
-        // Bottom branding
-        // ----------------------------------------------------
-
+        // Branding Footer
         Text(
             text = "Report. Track. Resolve.",
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 18.dp),
+                .padding(vertical = 20.dp),
             textAlign = TextAlign.Center,
             fontSize = 12.sp,
             fontWeight = FontWeight.Medium,

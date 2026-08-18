@@ -3,12 +3,13 @@ package com.example.mtaafix.ui.auth
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,7 +28,7 @@ import com.example.mtaafix.R
 import kotlinx.coroutines.delay
 
 // ------------------------------------------------------------
-// MtaaFix Colors (matches LoginScreen)
+// MtaaFix Colors
 // ------------------------------------------------------------
 
 private val MtaaBlue = Color(0xFF0B5FA5)
@@ -48,25 +49,22 @@ fun SignUpScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
-    var confirmPasswordVisible by remember { mutableStateOf(false) }
+    var passwordVisible by remember { mutableStateOf(true) }
+    var confirmPasswordVisible by remember { mutableStateOf(true) }
     var showSuccessMessage by remember { mutableStateOf(false) }
     var showErrorMessage by remember { mutableStateOf(false) }
 
 
     // --------------------------------------------------------
-    // Sign up success
+    // Sign up success & Navigation
     // --------------------------------------------------------
-
-    if (authViewModel.isLoggedIn) {
-        onSignUpSuccess()
-    }
 
     LaunchedEffect(authViewModel.isLoggedIn) {
         if (authViewModel.isLoggedIn) {
             showSuccessMessage = true
-            delay(2000)
+            delay(1500)
             showSuccessMessage = false
+            onSignUpSuccess()
         }
     }
 
@@ -85,7 +83,7 @@ fun SignUpScreen(
 
 
     // --------------------------------------------------------
-    // Screen
+    // Screen Layout
     // --------------------------------------------------------
 
     Column(
@@ -93,37 +91,39 @@ fun SignUpScreen(
             .fillMaxSize()
             .background(Color.White)
             .padding(horizontal = 24.dp)
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
 
-        // ----------------------------------------------------
-        // Status messages
-        // ----------------------------------------------------
-
-        AnimatedStatusBanner(
-            visible = showSuccessMessage,
-            message = "Account created!",
-            isSuccess = true
-        )
-
-        AnimatedStatusBanner(
-            visible = showErrorMessage,
-            message = authViewModel.errorMessage ?: "",
-            isSuccess = false
-        )
-
-
-        // ----------------------------------------------------
-        // Top section
-        // ----------------------------------------------------
-
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
+            modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            Spacer(modifier = Modifier.height(45.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // ----------------------------------------------------
+            // Status messages
+            // ----------------------------------------------------
+
+            AnimatedStatusBanner(
+                visible = showSuccessMessage,
+                message = "Account created!",
+                isSuccess = true
+            )
+
+            AnimatedStatusBanner(
+                visible = showErrorMessage,
+                message = authViewModel.errorMessage ?: "",
+                isSuccess = false
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // ----------------------------------------------------
+            // Top section
+            // ----------------------------------------------------
 
             Image(
                 painter = painterResource(id = R.drawable.splash_logo),
@@ -133,7 +133,7 @@ fun SignUpScreen(
                     .height(90.dp)
             )
 
-            Spacer(modifier = Modifier.height(25.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             Text(
                 text = "Create Account 📝",
@@ -183,7 +183,7 @@ fun SignUpScreen(
                         )
                     },
                     singleLine = true,
-                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                    keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Email
                     ),
                     shape = RoundedCornerShape(12.dp),
@@ -191,12 +191,15 @@ fun SignUpScreen(
                         focusedBorderColor = MtaaBlue,
                         unfocusedBorderColor = MtaaBorder,
                         focusedContainerColor = MtaaLightBlue,
-                        unfocusedContainerColor = MtaaLightBlue
+                        unfocusedContainerColor = MtaaLightBlue,
+                        focusedTextColor = MtaaDarkBlue,
+                        unfocusedTextColor = MtaaDarkBlue,
+                        cursorColor = MtaaBlue
                     )
                 )
             }
 
-            Spacer(modifier = Modifier.height(17.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
 
             // ------------------------------------------------
@@ -227,15 +230,11 @@ fun SignUpScreen(
                         )
                     },
                     trailingIcon = {
-                        IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                            Icon(
-                                imageVector = if (passwordVisible) {
-                                    Icons.Default.VisibilityOff
-                                } else {
-                                    Icons.Default.Visibility
-                                },
-                                contentDescription = if (passwordVisible) "Hide password" else "Show password",
-                                tint = MtaaGray
+                        TextButton(onClick = { passwordVisible = !passwordVisible }) {
+                            Text(
+                                text = if (passwordVisible) "Hide" else "Show",
+                                fontSize = 12.sp,
+                                color = MtaaGray
                             )
                         }
                     },
@@ -245,7 +244,7 @@ fun SignUpScreen(
                     } else {
                         PasswordVisualTransformation()
                     },
-                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                    keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Password
                     ),
                     shape = RoundedCornerShape(12.dp),
@@ -253,12 +252,15 @@ fun SignUpScreen(
                         focusedBorderColor = MtaaBlue,
                         unfocusedBorderColor = MtaaBorder,
                         focusedContainerColor = MtaaLightBlue,
-                        unfocusedContainerColor = MtaaLightBlue
+                        unfocusedContainerColor = MtaaLightBlue,
+                        focusedTextColor = MtaaDarkBlue,
+                        unfocusedTextColor = MtaaDarkBlue,
+                        cursorColor = MtaaBlue
                     )
                 )
             }
 
-            Spacer(modifier = Modifier.height(17.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
 
             // ------------------------------------------------
@@ -289,15 +291,11 @@ fun SignUpScreen(
                         )
                     },
                     trailingIcon = {
-                        IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
-                            Icon(
-                                imageVector = if (confirmPasswordVisible) {
-                                    Icons.Default.VisibilityOff
-                                } else {
-                                    Icons.Default.Visibility
-                                },
-                                contentDescription = if (confirmPasswordVisible) "Hide password" else "Show password",
-                                tint = MtaaGray
+                        TextButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                            Text(
+                                text = if (confirmPasswordVisible) "Hide" else "Show",
+                                fontSize = 12.sp,
+                                color = MtaaGray
                             )
                         }
                     },
@@ -307,7 +305,7 @@ fun SignUpScreen(
                     } else {
                         PasswordVisualTransformation()
                     },
-                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                    keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Password
                     ),
                     shape = RoundedCornerShape(12.dp),
@@ -315,12 +313,15 @@ fun SignUpScreen(
                         focusedBorderColor = MtaaBlue,
                         unfocusedBorderColor = MtaaBorder,
                         focusedContainerColor = MtaaLightBlue,
-                        unfocusedContainerColor = MtaaLightBlue
+                        unfocusedContainerColor = MtaaLightBlue,
+                        focusedTextColor = MtaaDarkBlue,
+                        unfocusedTextColor = MtaaDarkBlue,
+                        cursorColor = MtaaBlue
                     )
                 )
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
 
             // ------------------------------------------------
@@ -401,8 +402,6 @@ fun SignUpScreen(
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.height(20.dp))
         }
 
 
@@ -414,7 +413,7 @@ fun SignUpScreen(
             text = "Report. Track. Resolve.",
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 18.dp),
+                .padding(vertical = 20.dp),
             textAlign = TextAlign.Center,
             fontSize = 12.sp,
             fontWeight = FontWeight.Medium,
