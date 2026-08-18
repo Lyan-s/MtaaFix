@@ -1,5 +1,8 @@
 package com.example.mtaafix.ui.onboarding
 
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -12,6 +15,10 @@ import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,11 +30,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 
-private val MtaaBlue = Color(0xFF0B5FA5)
-private val MtaaDarkBlue = Color(0xFF073B73)
-private val MtaaOrange = Color(0xFFFF8A00)
-private val MtaaLightBlue = Color(0xFFEAF4FC)
-private val MtaaText = Color(0xFF263238)
+// ------------------------------------------------------------
+// Colors now come from MaterialTheme.colorScheme (see Theme.kt).
+// This screen must be composed under MtaaFixTheme { ... }.
+// ------------------------------------------------------------
 
 private data class SplashFeature(
     val icon: ImageVector,
@@ -58,20 +64,37 @@ private val splashFeatures = listOf(
     )
 )
 
+private const val SPLASH_DURATION_MS = 2600
+
 @Composable
 fun SplashScreen(
     onFinished: () -> Unit = {}
 ) {
 
+    val colors = MaterialTheme.colorScheme
+    var progressTarget by remember { mutableFloatStateOf(0f) }
+
+    // Animate the loading bar from 0 -> 1 over the splash
+    // duration instead of showing a frozen 45% bar.
+    val animatedProgress by animateFloatAsState(
+        targetValue = progressTarget,
+        animationSpec = tween(
+            durationMillis = SPLASH_DURATION_MS,
+            easing = LinearEasing
+        ),
+        label = "splashProgress"
+    )
+
     LaunchedEffect(Unit) {
-        delay(2600)
+        progressTarget = 1f
+        delay(SPLASH_DURATION_MS.toLong())
         onFinished()
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(colors.background)
     ) {
 
         /*
@@ -123,14 +146,14 @@ fun SplashScreen(
                     text = "Mtaa",
                     fontSize = 48.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = MtaaBlue
+                    color = colors.primary
                 )
 
                 Text(
                     text = "Fix",
                     fontSize = 48.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = MtaaOrange
+                    color = colors.secondary
                 )
             }
 
@@ -148,42 +171,42 @@ fun SplashScreen(
                     text = "Report",
                     fontSize = 19.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MtaaBlue
+                    color = colors.primary
                 )
 
                 Text(
                     text = ".",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MtaaOrange
+                    color = colors.secondary
                 )
 
                 Text(
                     text = " Track",
                     fontSize = 19.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MtaaBlue
+                    color = colors.primary
                 )
 
                 Text(
                     text = ".",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MtaaOrange
+                    color = colors.secondary
                 )
 
                 Text(
                     text = " Resolve",
                     fontSize = 19.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MtaaBlue
+                    color = colors.primary
                 )
 
                 Text(
                     text = ".",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MtaaOrange
+                    color = colors.secondary
                 )
             }
 
@@ -197,7 +220,7 @@ fun SplashScreen(
                 text = "Together, let's build cleaner, safer\nand better communities.",
                 fontSize = 17.sp,
                 lineHeight = 25.sp,
-                color = MtaaText,
+                color = colors.onBackground,
                 textAlign = TextAlign.Center
             )
 
@@ -243,7 +266,7 @@ fun SplashScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MtaaDarkBlue)
+                .background(colors.onPrimaryContainer)
                 .padding(
                     horizontal = 24.dp,
                     vertical = 25.dp
@@ -265,14 +288,14 @@ fun SplashScreen(
                     text = "community",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MtaaOrange
+                    color = colors.secondary
                 )
 
                 Text(
                     text = " a better place.",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MtaaOrange
+                    color = colors.secondary
                 )
             }
 
@@ -280,6 +303,9 @@ fun SplashScreen(
 
             /*
              * LOADING BAR
+             *
+             * Now animates from 0 to full width over the splash
+             * duration instead of sitting frozen at 45%.
              */
 
             Box(
@@ -292,7 +318,7 @@ fun SplashScreen(
 
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth(0.45f)
+                        .fillMaxWidth(animatedProgress)
                         .fillMaxHeight()
                         .clip(RoundedCornerShape(10.dp))
                         .background(Color.White)
@@ -322,6 +348,8 @@ private fun SplashFeatureItem(
     feature: SplashFeature
 ) {
 
+    val colors = MaterialTheme.colorScheme
+
     Column(
         modifier = Modifier.width(78.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -331,7 +359,7 @@ private fun SplashFeatureItem(
             modifier = Modifier
                 .size(52.dp)
                 .background(
-                    color = MtaaLightBlue,
+                    color = colors.primaryContainer,
                     shape = CircleShape
                 ),
             contentAlignment = Alignment.Center
@@ -341,7 +369,7 @@ private fun SplashFeatureItem(
                 imageVector = feature.icon,
                 contentDescription = feature.title,
                 modifier = Modifier.size(27.dp),
-                tint = MtaaBlue
+                tint = colors.primary
             )
         }
 
@@ -351,7 +379,7 @@ private fun SplashFeatureItem(
             text = feature.title,
             fontSize = 10.sp,
             fontWeight = FontWeight.ExtraBold,
-            color = MtaaBlue,
+            color = colors.primary,
             textAlign = TextAlign.Center
         )
 
@@ -361,7 +389,7 @@ private fun SplashFeatureItem(
             text = feature.description,
             fontSize = 9.sp,
             lineHeight = 12.sp,
-            color = MtaaText.copy(alpha = 0.8f),
+            color = colors.onBackground.copy(alpha = 0.8f),
             textAlign = TextAlign.Center
         )
     }
@@ -381,6 +409,8 @@ private fun CommunityIllustration(
     modifier: Modifier = Modifier
 ) {
 
+    val colors = MaterialTheme.colorScheme
+
     Box(
         modifier = modifier,
         contentAlignment = Alignment.BottomCenter
@@ -393,7 +423,7 @@ private fun CommunityIllustration(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MtaaLightBlue)
+                .background(colors.primaryContainer)
         )
 
         /*
@@ -426,7 +456,7 @@ private fun CommunityIllustration(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
-                ,
+            ,
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Bottom
         ) {
@@ -453,7 +483,7 @@ private fun CommunityIllustration(
                         topEnd = 100.dp
                     )
                 )
-                .background(MtaaDarkBlue)
+                .background(colors.onPrimaryContainer)
         )
 
         /*

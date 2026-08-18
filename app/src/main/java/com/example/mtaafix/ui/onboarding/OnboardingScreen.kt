@@ -1,5 +1,6 @@
 package com.example.mtaafix.ui.onboarding
 
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -14,6 +15,7 @@ import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,16 +31,16 @@ import kotlinx.coroutines.launch
 import com.example.mtaafix.R
 
 // ------------------------------------------------------------
-// MtaaFix Colors
+// Colors now come from MaterialTheme.colorScheme (see Theme.kt):
+//   MtaaBlue      -> colorScheme.primary
+//   MtaaDarkBlue  -> colorScheme.onPrimaryContainer (dark text)
+//   MtaaOrange    -> colorScheme.secondary
+//   MtaaLightBlue -> colorScheme.primaryContainer
+//   MtaaGray      -> colorScheme.onSurfaceVariant
+//   MtaaLightGray -> colorScheme.surfaceVariant
+// This screen must be composed under MtaaFixTheme { ... } for
+// these to resolve correctly.
 // ------------------------------------------------------------
-
-private val MtaaBlue = Color(0xFF0B5FA5)
-private val MtaaDarkBlue = Color(0xFF073B73)
-private val MtaaOrange = Color(0xFFFF8A00)
-private val MtaaLightBlue = Color(0xFFEAF4FC)
-private val MtaaGray = Color(0xFF6B7280)
-private val MtaaLightGray = Color(0xFFD9E0E8)
-
 
 // ------------------------------------------------------------
 // Onboarding Data
@@ -57,8 +59,8 @@ private val pages = listOf(
         orangeTitle = "Report it.",
         description =
             "Report potholes, broken streetlights,\n" +
-            "water leaks, garbage and other\n" +
-            "local issues in seconds."
+                    "water leaks, garbage and other\n" +
+                    "local issues in seconds."
     ),
 
     OnboardingPage(
@@ -66,8 +68,8 @@ private val pages = listOf(
         orangeTitle = "",
         description =
             "Add a photo, pick a category,\n" +
-            "and mark how urgent it is —\n" +
-            "MtaaFix handles the rest."
+                    "and mark how urgent it is —\n" +
+                    "MtaaFix handles the rest."
     ),
 
     OnboardingPage(
@@ -75,8 +77,8 @@ private val pages = listOf(
         orangeTitle = "",
         description =
             "Follow your report's progress from\n" +
-            "Pending to Resolved, with updates\n" +
-            "along the way."
+                    "Pending to Resolved, with updates\n" +
+                    "along the way."
     )
 )
 
@@ -95,11 +97,12 @@ fun OnboardingScreen(
     )
 
     val coroutineScope = rememberCoroutineScope()
+    val colors = MaterialTheme.colorScheme
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(colors.background)
     ) {
 
         // ----------------------------------------------------
@@ -166,7 +169,7 @@ fun OnboardingScreen(
                         text = page.title,
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MtaaDarkBlue,
+                        color = colors.onPrimaryContainer,
                         textAlign = TextAlign.Center
                     )
 
@@ -176,7 +179,7 @@ fun OnboardingScreen(
                             text = page.orangeTitle,
                             fontSize = 28.sp,
                             fontWeight = FontWeight.Bold,
-                            color = MtaaOrange,
+                            color = colors.secondary,
                             textAlign = TextAlign.Center
                         )
                     }
@@ -189,7 +192,7 @@ fun OnboardingScreen(
                         text = page.description,
                         fontSize = 16.sp,
                         lineHeight = 24.sp,
-                        color = MtaaDarkBlue,
+                        color = colors.onPrimaryContainer,
                         textAlign = TextAlign.Center
                     )
                 }
@@ -217,18 +220,23 @@ fun OnboardingScreen(
                 val selected =
                     pagerState.currentPage == index
 
+                // Animate the dot size change instead of
+                // snapping instantly between 10dp and 12dp.
+                val dotSize by animateDpAsState(
+                    targetValue = if (selected) 12.dp else 10.dp,
+                    label = "dotSize"
+                )
+
                 Box(
                     modifier = Modifier
                         .padding(horizontal = 5.dp)
-                        .size(
-                            if (selected) 12.dp else 10.dp
-                        )
+                        .size(dotSize)
                         .clip(CircleShape)
                         .background(
                             if (selected)
-                                MtaaBlue
+                                colors.primary
                             else
-                                MtaaLightGray
+                                colors.surfaceVariant
                         )
                 )
             }
@@ -252,14 +260,22 @@ fun OnboardingScreen(
 
             // --------------------------------------------
             // Skip / Back
+            //
+            // Fixed: was `== 1`, which only showed "Back" on
+            // the middle page and reverted to "Skip" on the
+            // last page. Now any page after the first shows
+            // "Back", and it stays correct if more pages are
+            // added later.
             // --------------------------------------------
 
-            if (pagerState.currentPage == 1) {
+            if (pagerState.currentPage > 0) {
 
                 TextButton(
                     onClick = {
                         coroutineScope.launch {
-                            pagerState.animateScrollToPage(0)
+                            pagerState.animateScrollToPage(
+                                pagerState.currentPage - 1
+                            )
                         }
                     }
                 ) {
@@ -268,7 +284,7 @@ fun OnboardingScreen(
                         text = "Back",
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MtaaBlue
+                        color = colors.primary
                     )
                 }
 
@@ -282,7 +298,7 @@ fun OnboardingScreen(
                         text = "Skip",
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MtaaBlue
+                        color = colors.primary
                     )
                 }
             }
@@ -316,7 +332,8 @@ fun OnboardingScreen(
                 shape = RoundedCornerShape(12.dp),
 
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MtaaBlue
+                    containerColor = colors.primary,
+                    contentColor = colors.onPrimary
                 )
             ) {
 
@@ -363,17 +380,18 @@ private fun PageIllustration(pageIndex: Int) {
 
 @Composable
 private fun ReportIllustration() {
+    val colors = MaterialTheme.colorScheme
     Box(contentAlignment = Alignment.Center) {
         Box(
             modifier = Modifier
                 .size(180.dp)
                 .clip(CircleShape)
-                .background(MtaaLightBlue)
+                .background(colors.primaryContainer)
         )
         Icon(
             imageVector = Icons.Filled.Place,
             contentDescription = null,
-            tint = MtaaBlue,
+            tint = colors.primary,
             modifier = Modifier.size(90.dp)
         )
         Box(
@@ -381,13 +399,13 @@ private fun ReportIllustration() {
                 .padding(start = 90.dp, bottom = 90.dp)
                 .size(56.dp)
                 .clip(CircleShape)
-                .background(MtaaOrange),
+                .background(colors.secondary),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Filled.Warning,
                 contentDescription = null,
-                tint = Color.White,
+                tint = colors.onSecondary,
                 modifier = Modifier.size(30.dp)
             )
         }
@@ -396,31 +414,32 @@ private fun ReportIllustration() {
 
 @Composable
 private fun SubmitIllustration() {
+    val colors = MaterialTheme.colorScheme
     Box(contentAlignment = Alignment.Center) {
         Box(
             modifier = Modifier
                 .size(200.dp, 150.dp)
                 .clip(RoundedCornerShape(20.dp))
-                .background(MtaaLightBlue)
+                .background(colors.primaryContainer)
         )
         Box(
             modifier = Modifier
                 .size(70.dp)
                 .clip(CircleShape)
-                .background(MtaaBlue)
+                .background(colors.primary)
         )
         Box(
             modifier = Modifier
                 .padding(start = 110.dp, top = 90.dp)
                 .size(50.dp)
                 .clip(CircleShape)
-                .background(MtaaOrange),
+                .background(colors.secondary),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Filled.CheckCircle,
                 contentDescription = null,
-                tint = Color.White,
+                tint = colors.onSecondary,
                 modifier = Modifier.size(28.dp)
             )
         }
@@ -429,6 +448,10 @@ private fun SubmitIllustration() {
 
 @Composable
 private fun TrackIllustration() {
+    val colors = MaterialTheme.colorScheme
+    // NOTE: these completion flags are hardcoded illustrative
+    // data for the onboarding art only — not driven by any
+    // real report status. Don't wire this to live state as-is.
     val stages = listOf(true, true, false, false)
     Column(horizontalAlignment = Alignment.Start) {
         stages.forEachIndexed { index, done ->
@@ -437,14 +460,14 @@ private fun TrackIllustration() {
                     modifier = Modifier
                         .size(36.dp)
                         .clip(CircleShape)
-                        .background(if (done) MtaaBlue else MtaaLightGray),
+                        .background(if (done) colors.primary else colors.surfaceVariant),
                     contentAlignment = Alignment.Center
                 ) {
                     if (done) {
                         Icon(
                             imageVector = Icons.Filled.CheckCircle,
                             contentDescription = null,
-                            tint = Color.White,
+                            tint = colors.onPrimary,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -455,7 +478,7 @@ private fun TrackIllustration() {
                         .width(140.dp)
                         .height(14.dp)
                         .clip(RoundedCornerShape(50))
-                        .background(if (done) MtaaOrange.copy(alpha = 0.5f) else MtaaLightGray)
+                        .background(if (done) colors.secondary.copy(alpha = 0.5f) else colors.surfaceVariant)
                 )
             }
             if (index != stages.lastIndex) {
