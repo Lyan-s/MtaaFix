@@ -10,6 +10,15 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
+/**
+ * User's theme preference, set from Settings and persisted by the
+ * caller (see MainActivity). SYSTEM follows the device's day/night
+ * setting; LIGHT/DARK pin the app regardless of device setting.
+ */
+enum class ThemeMode {
+    SYSTEM, LIGHT, DARK
+}
+
 private val LightColors = lightColorScheme(
     primary = BluePrimary,
     onPrimary = OnBluePrimary,
@@ -30,6 +39,8 @@ private val LightColors = lightColorScheme(
     onBackground = OnLightBackground,
     surfaceVariant = LightSurfaceVariant,
     onSurfaceVariant = OnLightSurfaceVariant,
+    outline = OnLightSurfaceVariant.copy(alpha = 0.4f),
+    outlineVariant = LightSurfaceVariant,
 )
 
 private val DarkColors = darkColorScheme(
@@ -52,6 +63,8 @@ private val DarkColors = darkColorScheme(
     onBackground = OnDarkBackground,
     surfaceVariant = DarkSurfaceVariant,
     onSurfaceVariant = OnDarkSurfaceVariant,
+    outline = OnDarkSurfaceVariant.copy(alpha = 0.4f),
+    outlineVariant = DarkSurfaceVariant,
 )
 
 /**

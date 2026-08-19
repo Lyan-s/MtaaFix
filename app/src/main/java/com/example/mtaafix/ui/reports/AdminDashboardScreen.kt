@@ -46,11 +46,11 @@ fun AdminDashboardScreen(
         Text(text = "Reports by status", style = MaterialTheme.typography.titleMedium)
         Spacer(modifier = Modifier.height(12.dp))
 
-        StatusBar(label = "Pending", count = pending, total = total, color = MaterialTheme.colorScheme.secondaryContainer)
-        StatusBar(label = "Verified", count = verified, total = total, color = MaterialTheme.colorScheme.primaryContainer)
-        StatusBar(label = "Assigned", count = assigned, total = total, color = MaterialTheme.colorScheme.primaryContainer)
-        StatusBar(label = "In Progress", count = inProgress, total = total, color = MaterialTheme.colorScheme.primaryContainer)
-        StatusBar(label = "Resolved", count = resolved, total = total, color = MaterialTheme.colorScheme.tertiaryContainer)
+        StatusBar(label = "Pending", count = pending, total = total, color = statusColors("Pending").container)
+        StatusBar(label = "Verified", count = verified, total = total, color = statusColors("Verified").container)
+        StatusBar(label = "Assigned", count = assigned, total = total, color = statusColors("Assigned").container)
+        StatusBar(label = "In Progress", count = inProgress, total = total, color = statusColors("In Progress").container)
+        StatusBar(label = "Resolved", count = resolved, total = total, color = statusColors("Resolved").container)
     }
 }
 

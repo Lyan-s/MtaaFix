@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -72,7 +74,27 @@ fun ReportDetailScreen(
             style = MaterialTheme.typography.bodyMedium
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(16.dp))
+
+        val currentUserId = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
+        val hasUpvoted = currentUserId != null && report.upvotedBy.contains(currentUserId)
+
+        OutlinedButton(
+            onClick = { reportViewModel.toggleUpvote(report.id) },
+            colors = ButtonDefaults.outlinedButtonColors(
+                contentColor = if (hasUpvoted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        ) {
+            Icon(
+                imageVector = Icons.Filled.CheckCircle,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(if (hasUpvoted) "You confirmed this (${report.upvotes})" else "Me too (${report.upvotes})")
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         Text(text = "Status", style = MaterialTheme.typography.titleMedium)
         Spacer(modifier = Modifier.height(12.dp))

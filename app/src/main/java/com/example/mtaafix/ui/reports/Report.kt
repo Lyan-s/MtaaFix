@@ -10,5 +10,9 @@ data class Report(
     val locationLabel: String = "",
     val photoUrl: String = "",
     val status: String = "Pending",
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val upvotes: Int = 0,
+    val upvotedBy: List<String> = emptyList(),
     val createdAt: Long = System.currentTimeMillis()
 )

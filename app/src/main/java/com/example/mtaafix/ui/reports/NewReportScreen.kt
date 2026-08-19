@@ -1,27 +1,33 @@
 package com.example.mtaafix.ui.reports
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.layout.Row
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.content.Intent
+import android.location.LocationManager
+import android.provider.Settings
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Color
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.ui.platform.LocalContext
-import android.net.Uri
-import coil.compose.AsyncImage
 import androidx.compose.runtime.*
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,6 +42,59 @@ fun NewReportScreen(
     var locationLabel by remember { mutableStateOf("") }
     var categoryMenuExpanded by remember { mutableStateOf(false) }
     var photoUri by remember { mutableStateOf<Uri?>(null) }
+    var latitude by remember { mutableStateOf<Double?>(null) }
+    var longitude by remember { mutableStateOf<Double?>(null) }
+    var locationStatus by remember { mutableStateOf("Location not captured") }
+
+    val context = LocalContext.current
+
+    fun captureLocation() {
+        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val hasGpsPermission = ContextCompat.checkSelfPermission(
+            context, Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (!hasGpsPermission) {
+            locationStatus = "Location permission not granted"
+            return
+        }
+
+        val providers = listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)
+        val anyProviderEnabled = providers.any { locationManager.isProviderEnabled(it) }
+
+        if (!anyProviderEnabled) {
+            locationStatus = "Location services are off"
+            return
+        }
+
+        val lastKnown = providers.firstNotNullOfOrNull { provider ->
+            try {
+                if (locationManager.isProviderEnabled(provider)) {
+                    locationManager.getLastKnownLocation(provider)
+                } else null
+            } catch (e: SecurityException) {
+                null
+            }
+        }
+
+        if (lastKnown != null) {
+            latitude = lastKnown.latitude
+            longitude = lastKnown.longitude
+            locationStatus = "Location captured ✓"
+        } else {
+            locationStatus = "Couldn't get location — try again outdoors or with a stronger signal"
+        }
+    }
+
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            captureLocation()
+        } else {
+            locationStatus = "Location permission denied"
+        }
+    }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -161,6 +220,44 @@ fun NewReportScreen(
             modifier = Modifier.fillMaxWidth()
         )
 
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedButton(
+            onClick = {
+                val hasPermission = ContextCompat.checkSelfPermission(
+                    context, Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+
+                if (hasPermission) {
+                    captureLocation()
+                } else {
+                    locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("📍 Attach GPS location")
+        }
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = locationStatus,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        if (locationStatus == "Location services are off") {
+            Spacer(modifier = Modifier.height(4.dp))
+            TextButton(
+                onClick = {
+                    context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                }
+            ) {
+                Text("Turn on Location")
+            }
+        }
+
         Spacer(modifier = Modifier.height(24.dp))
 
         reportViewModel.errorMessage?.let { message ->
@@ -176,7 +273,9 @@ fun NewReportScreen(
                     category = selectedCategory.label,
                     severity = selectedSeverity.label,
                     locationLabel = locationLabel,
-                    photoUri = photoUri
+                    photoUri = photoUri,
+                    latitude = latitude,
+                    longitude = longitude
                 )
             },
             enabled = !reportViewModel.isSubmitting,

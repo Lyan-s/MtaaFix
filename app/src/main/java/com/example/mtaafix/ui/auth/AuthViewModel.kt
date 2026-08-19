@@ -24,6 +24,15 @@ class AuthViewModel : ViewModel() {
     var isAdmin by mutableStateOf(false)
         private set
 
+    var resetEmailSent by mutableStateOf(false)
+        private set
+
+    var passwordChangeSuccess by mutableStateOf(false)
+        private set
+
+    val currentUserEmail: String
+        get() = auth.currentUser?.email ?: ""
+
     fun signUp(email: String, password: String, confirmPassword: String) {
         errorMessage = null
 
@@ -77,6 +86,71 @@ class AuthViewModel : ViewModel() {
                     errorMessage = task.exception?.message ?: "Login failed"
                 }
             }
+    }
+
+
+    fun sendPasswordReset(email: String) {
+        errorMessage = null
+        resetEmailSent = false
+
+        if (email.isBlank()) {
+            errorMessage = "Please enter your email"
+            return
+        }
+
+        isLoading = true
+        auth.sendPasswordResetEmail(email)
+            .addOnCompleteListener { task ->
+                isLoading = false
+                if (task.isSuccessful) {
+                    resetEmailSent = true
+                } else {
+                    errorMessage = task.exception?.message ?: "Failed to send reset email"
+                }
+            }
+    }
+
+
+    fun changePassword(newPassword: String, confirmPassword: String) {
+        errorMessage = null
+        passwordChangeSuccess = false
+
+        if (newPassword.isBlank()) {
+            errorMessage = "Please enter a new password"
+            return
+        }
+        if (newPassword.length < 6) {
+            errorMessage = "Password must be at least 6 characters"
+            return
+        }
+        if (newPassword != confirmPassword) {
+            errorMessage = "Passwords don't match"
+            return
+        }
+
+        isLoading = true
+        auth.currentUser?.updatePassword(newPassword)
+            ?.addOnCompleteListener { task ->
+                isLoading = false
+                if (task.isSuccessful) {
+                    passwordChangeSuccess = true
+                } else {
+                    // Firebase requires a recent login for sensitive changes like this;
+                    // if the session is old, this is the most common failure reason
+                    errorMessage = task.exception?.message
+                        ?: "Failed to update password. Try logging out and back in, then retry."
+                }
+            }
+    }
+
+    fun clearPasswordChangeState() {
+        passwordChangeSuccess = false
+        errorMessage = null
+    }
+
+    fun clearResetState() {
+        resetEmailSent = false
+        errorMessage = null
     }
 
     fun logout() {

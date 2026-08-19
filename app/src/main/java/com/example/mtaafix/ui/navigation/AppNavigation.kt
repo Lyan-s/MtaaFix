@@ -12,6 +12,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.mtaafix.ui.auth.AuthViewModel
+import com.example.mtaafix.ui.auth.ForgotPasswordScreen
 import com.example.mtaafix.ui.auth.LoginScreen
 import com.example.mtaafix.ui.auth.SignUpScreen
 import com.example.mtaafix.ui.home.AdminHomeScreen
@@ -22,11 +23,14 @@ import com.example.mtaafix.ui.reports.NewReportScreen
 import com.example.mtaafix.ui.reports.ReportDetailScreen
 import com.example.mtaafix.ui.reports.ReportViewModel
 import com.example.mtaafix.ui.reports.UpdatesScreen
+import com.example.mtaafix.ui.settings.ProfileScreen
 import com.example.mtaafix.ui.settings.SettingsScreen
+import com.example.mtaafix.ui.theme.ThemeMode
 
 object Routes {
     const val LOGIN = "login"
     const val SIGN_UP = "signup"
+    const val FORGOT_PASSWORD = "forgot_password"
     const val HOME = "home"
     const val ADMIN_HOME = "admin_home"
     const val SETTINGS = "settings"
@@ -35,10 +39,14 @@ object Routes {
     const val ONBOARDING = "onboarding"
     const val REPORT_DETAIL = "report_detail"
     const val UPDATES = "updates"
+    const val PROFILE = "profile"
 }
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(
+    themeMode: ThemeMode = ThemeMode.SYSTEM,
+    onThemeModeChange: (ThemeMode) -> Unit = {}
+) {
     val navController = rememberNavController()
     val authViewModel: AuthViewModel = viewModel()
     val reportViewModel: ReportViewModel = viewModel()
@@ -86,6 +94,18 @@ fun AppNavigation() {
                 },
                 onNavigateToSignUp = {
                     navController.navigate(Routes.SIGN_UP)
+                },
+                onForgotPassword = {
+                    navController.navigate(Routes.FORGOT_PASSWORD)
+                }
+            )
+        }
+
+        composable(Routes.FORGOT_PASSWORD) {
+            ForgotPasswordScreen(
+                authViewModel = authViewModel,
+                onBackToLogin = {
+                    navController.popBackStack()
                 }
             )
         }
@@ -141,12 +161,21 @@ fun AppNavigation() {
         composable(Routes.SETTINGS) {
             SettingsScreen(
                 authViewModel = authViewModel,
+                themeMode = themeMode,
+                onThemeModeChange = onThemeModeChange,
                 onLoggedOut = {
                     navController.navigate(Routes.LOGIN) {
                         popUpTo(0) { inclusive = true }
                     }
+                },
+                onNavigateToProfile = {
+                    navController.navigate(Routes.PROFILE)
                 }
             )
+        }
+
+        composable(Routes.PROFILE) {
+            ProfileScreen(authViewModel = authViewModel)
         }
 
         composable(Routes.NEW_REPORT) {

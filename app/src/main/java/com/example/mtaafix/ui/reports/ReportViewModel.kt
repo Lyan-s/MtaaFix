@@ -46,7 +46,9 @@ class ReportViewModel : ViewModel() {
         category: String,
         severity: String,
         locationLabel: String,
-        photoUri: Uri?
+        photoUri: Uri?,
+        latitude: Double? = null,
+        longitude: Double? = null
     ) {
         errorMessage = null
 
@@ -69,7 +71,7 @@ class ReportViewModel : ViewModel() {
 
                 override fun onSuccess(requestId: String, resultData: MutableMap<Any?, Any?>) {
                     val photoUrl = resultData["secure_url"] as? String ?: ""
-                    saveReportToFirestore(title, description, category, severity, locationLabel, photoUrl)
+                    saveReportToFirestore(title, description, category, severity, locationLabel, photoUrl, latitude, longitude)
                 }
 
                 override fun onError(requestId: String, error: ErrorInfo) {
@@ -88,7 +90,9 @@ class ReportViewModel : ViewModel() {
         category: String,
         severity: String,
         locationLabel: String,
-        photoUrl: String
+        photoUrl: String,
+        latitude: Double?,
+        longitude: Double?
     ) {
         val userId = auth.currentUser?.uid ?: ""
 
@@ -99,7 +103,9 @@ class ReportViewModel : ViewModel() {
             category = category,
             severity = severity,
             locationLabel = locationLabel,
-            photoUrl = photoUrl
+            photoUrl = photoUrl,
+            latitude = latitude,
+            longitude = longitude
         )
 
         firestore.collection("reports")
@@ -214,6 +220,42 @@ class ReportViewModel : ViewModel() {
             }
             .addOnFailureListener { exception ->
                 errorMessage = "Failed to delete report: ${exception.message}"
+            }
+    }
+
+
+    fun toggleUpvote(reportId: String) {
+        val userId = auth.currentUser?.uid ?: return
+        val currentReport = allReports.find { it.id == reportId }
+            ?: myReports.find { it.id == reportId }
+            ?: selectedReport
+            ?: return
+
+        val alreadyUpvoted = currentReport.upvotedBy.contains(userId)
+        val newUpvotedBy = if (alreadyUpvoted) {
+            currentReport.upvotedBy - userId
+        } else {
+            currentReport.upvotedBy + userId
+        }
+        val newCount = newUpvotedBy.size
+
+        firestore.collection("reports").document(reportId)
+            .update(
+                mapOf(
+                    "upvotedBy" to newUpvotedBy,
+                    "upvotes" to newCount
+                )
+            )
+            .addOnSuccessListener {
+                fun applyUpdate(r: Report) =
+                    if (r.id == reportId) r.copy(upvotedBy = newUpvotedBy, upvotes = newCount) else r
+
+                allReports = allReports.map(::applyUpdate)
+                myReports = myReports.map(::applyUpdate)
+                selectedReport = selectedReport?.let(::applyUpdate)
+            }
+            .addOnFailureListener { exception ->
+                errorMessage = "Failed to update upvote: ${exception.message}"
             }
     }
 

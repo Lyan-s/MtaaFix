@@ -14,7 +14,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -28,15 +27,10 @@ import com.example.mtaafix.R
 import kotlinx.coroutines.delay
 
 // ------------------------------------------------------------
-// MtaaFix Colors
+// Colors come from MaterialTheme.colorScheme (see ui/theme/Theme.kt).
+// This screen is composed under MtaaFixTheme via MainActivity, so
+// colorScheme resolves to the MtaaFix brand palette automatically.
 // ------------------------------------------------------------
-
-private val MtaaBlue = Color(0xFF0B5FA5)
-private val MtaaDarkBlue = Color(0xFF073B73)
-private val MtaaOrange = Color(0xFFFF8A00)
-private val MtaaLightBlue = Color(0xFFF5F9FD)
-private val MtaaBorder = Color(0xFFD9E0E8)
-private val MtaaGray = Color(0xFF6B7280)
 
 @Composable
 fun LoginScreen(
@@ -50,6 +44,8 @@ fun LoginScreen(
     var passwordVisible by remember { mutableStateOf(true) }
     var showSuccessMessage by remember { mutableStateOf(false) }
     var showErrorMessage by remember { mutableStateOf(false) }
+
+    val colors = MaterialTheme.colorScheme
 
     // --------------------------------------------------------
     // Login success & Navigation
@@ -80,7 +76,7 @@ fun LoginScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(colors.background)
             .systemBarsPadding() // FIX 1: Prevents overlapping with the top status bar and bottom navigation bar
             .padding(horizontal = 24.dp)
             .verticalScroll(rememberScrollState()),
@@ -109,7 +105,7 @@ fun LoginScreen(
                 text = "Welcome Back 👋",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
-                color = MtaaDarkBlue,
+                color = colors.onPrimaryContainer,
                 textAlign = TextAlign.Center
             )
 
@@ -118,7 +114,7 @@ fun LoginScreen(
             Text(
                 text = "Let's fix your mtaa.",
                 fontSize = 16.sp,
-                color = MtaaGray,
+                color = colors.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
 
@@ -143,7 +139,7 @@ fun LoginScreen(
                     text = "Email",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = MtaaDarkBlue
+                    color = colors.onPrimaryContainer
                 )
 
                 Spacer(modifier = Modifier.height(7.dp))
@@ -157,20 +153,20 @@ fun LoginScreen(
                         Icon(
                             imageVector = Icons.Default.Email,
                             contentDescription = "Email Icon",
-                            tint = MtaaBlue
+                            tint = colors.primary
                         )
                     },
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MtaaBlue,
-                        unfocusedBorderColor = MtaaBorder,
-                        focusedContainerColor = MtaaLightBlue,
-                        unfocusedContainerColor = MtaaLightBlue,
-                        focusedTextColor = MtaaDarkBlue,
-                        unfocusedTextColor = MtaaDarkBlue,
-                        cursorColor = MtaaBlue
+                        focusedBorderColor = colors.primary,
+                        unfocusedBorderColor = colors.outline,
+                        focusedContainerColor = colors.surfaceVariant,
+                        unfocusedContainerColor = colors.surfaceVariant,
+                        focusedTextColor = colors.onPrimaryContainer,
+                        unfocusedTextColor = colors.onPrimaryContainer,
+                        cursorColor = colors.primary
                     )
                 )
             }
@@ -183,7 +179,7 @@ fun LoginScreen(
                     text = "Password",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = MtaaDarkBlue
+                    color = colors.onPrimaryContainer
                 )
 
                 Spacer(modifier = Modifier.height(7.dp))
@@ -197,7 +193,7 @@ fun LoginScreen(
                         Icon(
                             imageVector = Icons.Default.Lock,
                             contentDescription = "Password Icon",
-                            tint = MtaaBlue
+                            tint = colors.primary
                         )
                     },
                     trailingIcon = {
@@ -205,7 +201,7 @@ fun LoginScreen(
                             Text(
                                 text = if (passwordVisible) "Hide" else "Show",
                                 fontSize = 12.sp,
-                                color = MtaaGray
+                                color = colors.onSurfaceVariant
                             )
                         }
                     },
@@ -214,13 +210,13 @@ fun LoginScreen(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MtaaBlue,
-                        unfocusedBorderColor = MtaaBorder,
-                        focusedContainerColor = MtaaLightBlue,
-                        unfocusedContainerColor = MtaaLightBlue,
-                        focusedTextColor = MtaaDarkBlue,
-                        unfocusedTextColor = MtaaDarkBlue,
-                        cursorColor = MtaaBlue
+                        focusedBorderColor = colors.primary,
+                        unfocusedBorderColor = colors.outline,
+                        focusedContainerColor = colors.surfaceVariant,
+                        unfocusedContainerColor = colors.surfaceVariant,
+                        focusedTextColor = colors.onPrimaryContainer,
+                        unfocusedTextColor = colors.onPrimaryContainer,
+                        cursorColor = colors.primary
                     )
                 )
             }
@@ -235,7 +231,7 @@ fun LoginScreen(
                         text = "Forgot password?",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = MtaaBlue
+                        color = colors.primary
                     )
                 }
             }
@@ -251,14 +247,15 @@ fun LoginScreen(
                     .height(56.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MtaaBlue,
-                    disabledContainerColor = MtaaBlue.copy(alpha = 0.6f)
+                    containerColor = colors.primary,
+                    contentColor = colors.onPrimary,
+                    disabledContainerColor = colors.primary.copy(alpha = 0.6f)
                 )
             ) {
                 if (authViewModel.isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(22.dp),
-                        color = Color.White,
+                        color = colors.onPrimary,
                         strokeWidth = 2.dp
                     )
                 } else {
@@ -279,16 +276,16 @@ fun LoginScreen(
             ) {
                 HorizontalDivider(
                     modifier = Modifier.weight(1f),
-                    color = MtaaBorder
+                    color = colors.outline
                 )
                 Text(
                     text = "  or  ",
                     fontSize = 13.sp,
-                    color = MtaaGray
+                    color = colors.onSurfaceVariant
                 )
                 HorizontalDivider(
                     modifier = Modifier.weight(1f),
-                    color = MtaaBorder
+                    color = colors.outline
                 )
             }
 
@@ -302,7 +299,7 @@ fun LoginScreen(
                 Text(
                     text = "Don't have an account? ",
                     fontSize = 14.sp,
-                    color = MtaaGray
+                    color = colors.onSurfaceVariant
                 )
                 TextButton(
                     onClick = onNavigateToSignUp,
@@ -312,7 +309,7 @@ fun LoginScreen(
                         text = "Sign Up",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MtaaOrange
+                        color = colors.secondary
                     )
                 }
             }
@@ -327,7 +324,7 @@ fun LoginScreen(
             textAlign = TextAlign.Center,
             fontSize = 12.sp,
             fontWeight = FontWeight.Medium,
-            color = MtaaGray
+            color = colors.onSurfaceVariant
         )
     }
 }
