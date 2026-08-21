@@ -56,7 +56,12 @@ fun AdminHomeScreen(
                     onReportClick = onReportClick
                 )
             } else {
-                AdminDashboardScreen(reportViewModel = reportViewModel)
+                AdminDashboardScreen(
+                    reportViewModel = reportViewModel,
+                    onReportClick = onReportClick,
+                    onViewAllReports = { selectedTab = 0 },
+                    onNavigateToSettings = onNavigateToSettings
+                )
             }
         }
     }
